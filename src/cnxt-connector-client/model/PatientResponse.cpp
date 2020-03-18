@@ -126,9 +126,15 @@ void PatientResponse::fromJson(const web::json::value& val)
             setGender(ModelBase::stringFromJson(fieldValue));
         }
     }
-    utility::datetime newDateOfBirth(utility::datetime());
-    newDateOfBirth->fromJson(val.at(utility::conversions::to_string_t("dateOfBirth")));
-    setDateOfBirth( newDateOfBirth );
+
+    if (val.has_field(utility::conversions::to_string_t("dateOfBirth")))
+    {
+        const web::json::value& fieldValue = val.at(utility::conversions::to_string_t("dateOfBirth"));
+        if (!fieldValue.is_null())
+        {
+            setDateOfBirth(ModelBase::dateFromJson(fieldValue));
+        }
+    }
     if(val.has_field(utility::conversions::to_string_t("latestSessionId")))
     {
         const web::json::value& fieldValue = val.at(utility::conversions::to_string_t("latestSessionId"));
@@ -145,26 +151,25 @@ void PatientResponse::fromJson(const web::json::value& val)
             setLatestSessionUpdate(ModelBase::dateFromJson(fieldValue));
         }
     }
+    m_Sessions.clear();
+    std::vector<web::json::value> jsonArray;
+    if(val.has_field(utility::conversions::to_string_t("sessions")))
     {
-        m_Sessions.clear();
-        std::vector<web::json::value> jsonArray;
-        if(val.has_field(utility::conversions::to_string_t("sessions")))
+    for( auto& item : val.at(utility::conversions::to_string_t("sessions")).as_array() )
+    {
+        if(item.is_null())
         {
-        for( auto& item : val.at(utility::conversions::to_string_t("sessions")).as_array() )
-        {
-            if(item.is_null())
-            {
-                m_Sessions.push_back( std::shared_ptr<Session>(nullptr) );
-            }
-            else
-            {
-                std::shared_ptr<Session> newItem(new Session());
-                newItem->fromJson(item);
-                m_Sessions.push_back( newItem );
-            }
+            m_Sessions.push_back( std::shared_ptr<Session>(nullptr) );
         }
+        else
+        {
+            std::shared_ptr<Session> newItem(new Session());
+            newItem->fromJson(item);
+            m_Sessions.push_back( newItem );
         }
     }
+    }
+
     if(val.has_field(utility::conversions::to_string_t("createdAt")))
     {
         const web::json::value& fieldValue = val.at(utility::conversions::to_string_t("createdAt"));
@@ -212,7 +217,10 @@ void PatientResponse::toMultipart(std::shared_ptr<MultipartFormData> multipart, 
     {
         multipart->add(ModelBase::toHttpContent(namePrefix + utility::conversions::to_string_t("gender"), m_Gender));
     }
-    m_DateOfBirth->toMultipart(multipart, utility::conversions::to_string_t("dateOfBirth."));
+    if(m_DateOfBirth.is_initialized())
+    {
+        multipart->add(ModelBase::toHttpContent(namePrefix + utility::conversions::to_string_t("dateOfBirth"), m_DateOfBirth));
+    }
     if(m_LatestSessionIdIsSet)
     {
         multipart->add(ModelBase::toHttpContent(namePrefix + utility::conversions::to_string_t("latestSessionId"), m_LatestSessionId));
@@ -221,18 +229,18 @@ void PatientResponse::toMultipart(std::shared_ptr<MultipartFormData> multipart, 
     {
         multipart->add(ModelBase::toHttpContent(namePrefix + utility::conversions::to_string_t("latestSessionUpdate"), m_LatestSessionUpdate));
     }
+
+    std::vector<web::json::value> jsonArray;
+    for( auto& item : m_Sessions )
     {
-        std::vector<web::json::value> jsonArray;
-        for( auto& item : m_Sessions )
-        {
-            jsonArray.push_back(ModelBase::toJson(item));
-        }
-        
-        if(jsonArray.size() > 0)
-        {
-            multipart->add(ModelBase::toHttpContent(namePrefix + utility::conversions::to_string_t("sessions"), web::json::value::array(jsonArray), utility::conversions::to_string_t("application/json")));
-        }
+        jsonArray.push_back(ModelBase::toJson(item));
     }
+        
+    if(jsonArray.size() > 0)
+    {
+        multipart->add(ModelBase::toHttpContent(namePrefix + utility::conversions::to_string_t("sessions"), web::json::value::array(jsonArray), utility::conversions::to_string_t("application/json")));
+    }
+
     if(m_CreatedAtIsSet)
     {
         multipart->add(ModelBase::toHttpContent(namePrefix + utility::conversions::to_string_t("createdAt"), m_CreatedAt));
@@ -269,9 +277,10 @@ void PatientResponse::fromMultiPart(std::shared_ptr<MultipartFormData> multipart
     {
         setGender(ModelBase::stringFromHttpContent(multipart->getContent(utility::conversions::to_string_t("gender"))));
     }
-    utility::datetime newDateOfBirth(utility::datetime());
-    newDateOfBirth->fromMultiPart(multipart, utility::conversions::to_string_t("dateOfBirth."));
-    setDateOfBirth( newDateOfBirth );
+    if(multipart->hasContent(utility::conversions::to_string_t("dateOfBirth")))
+    {
+        setDateOfBirth(ModelBase::dateFromHttpContent(multipart->getContent(utility::conversions::to_string_t("dateOfBirth"))));
+    }
     if(multipart->hasContent(utility::conversions::to_string_t("latestSessionId")))
     {
         setLatestSessionId(ModelBase::stringFromHttpContent(multipart->getContent(utility::conversions::to_string_t("latestSessionId"))));
@@ -280,27 +289,27 @@ void PatientResponse::fromMultiPart(std::shared_ptr<MultipartFormData> multipart
     {
         setLatestSessionUpdate(ModelBase::dateFromHttpContent(multipart->getContent(utility::conversions::to_string_t("latestSessionUpdate"))));
     }
-    {
-        m_Sessions.clear();
-        if(multipart->hasContent(utility::conversions::to_string_t("sessions")))
-        {
 
-        web::json::value jsonArray = web::json::value::parse(ModelBase::stringFromHttpContent(multipart->getContent(utility::conversions::to_string_t("sessions"))));
-        for( auto& item : jsonArray.as_array() )
+    m_Sessions.clear();
+    if(multipart->hasContent(utility::conversions::to_string_t("sessions")))
+    {
+
+    web::json::value jsonArray = web::json::value::parse(ModelBase::stringFromHttpContent(multipart->getContent(utility::conversions::to_string_t("sessions"))));
+    for( auto& item : jsonArray.as_array() )
+    {
+        if(item.is_null())
         {
-            if(item.is_null())
-            {
-                m_Sessions.push_back( std::shared_ptr<Session>(nullptr) );
-            }
-            else
-            {
-                std::shared_ptr<Session> newItem(new Session());
-                newItem->fromJson(item);
-                m_Sessions.push_back( newItem );
-            }
+            m_Sessions.push_back( std::shared_ptr<Session>(nullptr) );
         }
+        else
+        {
+            std::shared_ptr<Session> newItem(new Session());
+            newItem->fromJson(item);
+            m_Sessions.push_back( newItem );
         }
     }
+    }
+    
     if(multipart->hasContent(utility::conversions::to_string_t("createdAt")))
     {
         setCreatedAt(ModelBase::dateFromHttpContent(multipart->getContent(utility::conversions::to_string_t("createdAt"))));

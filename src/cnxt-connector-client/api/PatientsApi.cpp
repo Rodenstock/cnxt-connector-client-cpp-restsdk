@@ -211,7 +211,13 @@ pplx::task<std::shared_ptr<PatientsResponse>> PatientsApi::getPatients(int32_t f
     }
     if (filter && *filter != nullptr)
     {
-        localVarQueryParams[utility::conversions::to_string_t("filter")] = ApiClient::parameterToString(*filter);
+        localVarQueryParams[utility::conversions::to_string_t("filter[firstName]")] = ApiClient::parameterToString(filter.get()->getFirstName());
+        localVarQueryParams[utility::conversions::to_string_t("filter[lastName]")] = ApiClient::parameterToString(filter.get()->getLastName());
+        localVarQueryParams[utility::conversions::to_string_t("filter[dateOfBirth]")] = ApiClient::parameterToString(filter.get()->getDateOfBirth());
+        localVarQueryParams[utility::conversions::to_string_t("filter[sessionUpdatedAfter]")] = ApiClient::parameterToString(filter.get()->getSessionUpdatedAfter());
+        localVarQueryParams[utility::conversions::to_string_t("filter[createdAfter]")] = ApiClient::parameterToString(filter.get()->getCreatedAfter());
+        localVarQueryParams[utility::conversions::to_string_t("filter[updatedAfter]")] = ApiClient::parameterToString(filter.get()->getUpdatedAfter());
+        localVarQueryParams[utility::conversions::to_string_t("filter[search]")] = ApiClient::parameterToString(filter.get()->getSearch());
     }
     if (sort)
     {

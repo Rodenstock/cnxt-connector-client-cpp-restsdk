@@ -33,6 +33,7 @@ namespace connector {
 namespace client {
 namespace model {
 
+class Session;
 
 /// <summary>
 /// Represents a patient
