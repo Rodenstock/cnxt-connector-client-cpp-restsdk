@@ -85,15 +85,16 @@ void PatientLink::fromJson(const web::json::value& val)
         {
         for( auto& item : val.at(utility::conversions::to_string_t("sessions")).as_array() )
         {
-            if(item.is_null())
+            if (item.is_null())
             {
-                m_Sessions.push_back( std::shared_ptr<Object>(nullptr) );
+                m_Sessions.push_back(std::shared_ptr<PatientLink_session>(nullptr));
             }
             else
             {
-                std::shared_ptr<Object> newItem(nullptr);
+                std::shared_ptr<PatientLink_session> newItem(new PatientLink_session());
                 newItem->fromJson(item);
-                m_Sessions.push_back( newItem );
+                m_Sessions.push_back(newItem);
+                setSessions(m_Sessions);
             }
         }
         }
@@ -160,13 +161,14 @@ void PatientLink::fromMultiPart(std::shared_ptr<MultipartFormData> multipart, co
         {
             if(item.is_null())
             {
-                m_Sessions.push_back( std::shared_ptr<Object>(nullptr) );
+                m_Sessions.push_back( std::shared_ptr<PatientLink_session>(nullptr) );
             }
             else
             {
-                std::shared_ptr<Object> newItem(nullptr);
+                std::shared_ptr<PatientLink_session> newItem(new PatientLink_session());
                 newItem->fromJson(item);
                 m_Sessions.push_back( newItem );
+                setSessions(m_Sessions);
             }
         }
         }
@@ -205,12 +207,12 @@ void PatientLink::unsetPatient()
     m_PatientIsSet = false;
 }
 
-std::vector<std::shared_ptr<Object>>& PatientLink::getSessions()
+std::vector<std::shared_ptr<PatientLink_session>>& PatientLink::getSessions()
 {
     return m_Sessions;
 }
 
-void PatientLink::setSessions(const std::vector<std::shared_ptr<Object>>& value)
+void PatientLink::setSessions(const std::vector<std::shared_ptr<PatientLink_session>>& value)
 {
     m_Sessions = value;
     m_SessionsIsSet = true;

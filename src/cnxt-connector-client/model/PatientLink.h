@@ -26,6 +26,7 @@
 #include "Object.h"
 #include <vector>
 #include "PatientLink_patient.h"
+#include "PatientLink_session.h"
 
 namespace com {
 namespace rodenstock {
@@ -78,18 +79,18 @@ public:
     /// <summary>
     /// An array of URIs of the associated session resources
     /// </summary>
-    std::vector<std::shared_ptr<Object>>& getSessions();
+    std::vector<std::shared_ptr<PatientLink_session>>& getSessions();
     bool sessionsIsSet() const;
     void unsetSessions();
 
-    void setSessions(const std::vector<std::shared_ptr<Object>>& value);
+    void setSessions(const std::vector<std::shared_ptr<PatientLink_session>>& value);
 
 
 protected:
     std::shared_ptr<PatientLink_self> m_Self;
         std::shared_ptr<PatientLink_patient> m_Patient;
     bool m_PatientIsSet;
-    std::vector<std::shared_ptr<Object>> m_Sessions;
+    std::vector<std::shared_ptr<PatientLink_session>> m_Sessions;
     bool m_SessionsIsSet;
 };
 

@@ -33,6 +33,7 @@ namespace connector {
 namespace client {
 namespace model {
 
+class Patient;
 
 /// <summary>
 /// Represents a session
@@ -149,7 +150,7 @@ public:
 
 protected:
     utility::string_t m_Id;
-        utility::string_t m_ExternalId;
+    utility::string_t m_ExternalId;
     bool m_ExternalIdIsSet;
     utility::string_t m_Name;
     bool m_NameIsSet;

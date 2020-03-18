@@ -115,11 +115,9 @@ void PatientFilter::fromJson(const web::json::value& val)
     if(val.has_field(utility::conversions::to_string_t("dateOfBirth")))
     {
         const web::json::value& fieldValue = val.at(utility::conversions::to_string_t("dateOfBirth"));
-        if(!fieldValue.is_null())
+        if (!fieldValue.is_null())
         {
-            utility::datetime newItem(utility::datetime());
-            newItem->fromJson(fieldValue);
-            setDateOfBirth( newItem );
+            setDateOfBirth(ModelBase::dateFromJson(fieldValue));
         }
     }
     if(val.has_field(utility::conversions::to_string_t("sessionUpdatedAfter")))
@@ -170,9 +168,9 @@ void PatientFilter::toMultipart(std::shared_ptr<MultipartFormData> multipart, co
     }
     if(m_DateOfBirthIsSet)
     {
-        if (m_DateOfBirth.get())
+        if (m_DateOfBirth.is_initialized())
         {
-            m_DateOfBirth->toMultipart(multipart, utility::conversions::to_string_t("dateOfBirth."));
+            multipart->add(ModelBase::toHttpContent(namePrefix + utility::conversions::to_string_t("dateOfBirth"), m_DateOfBirth));
         }
     }
     if(m_SessionUpdatedAfterIsSet)
@@ -211,12 +209,7 @@ void PatientFilter::fromMultiPart(std::shared_ptr<MultipartFormData> multipart, 
     }
     if(multipart->hasContent(utility::conversions::to_string_t("dateOfBirth")))
     {
-        if(multipart->hasContent(utility::conversions::to_string_t("dateOfBirth")))
-        {
-            utility::datetime newItem(utility::datetime());
-            newItem->fromMultiPart(multipart, utility::conversions::to_string_t("dateOfBirth."));
-            setDateOfBirth( newItem );
-        }
+        setDateOfBirth(ModelBase::dateFromHttpContent(multipart->getContent(utility::conversions::to_string_t("dateOfBirth"))));
     }
     if(multipart->hasContent(utility::conversions::to_string_t("sessionUpdatedAfter")))
     {

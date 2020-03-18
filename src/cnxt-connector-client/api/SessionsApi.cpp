@@ -15,6 +15,7 @@
 #include "IHttpBody.h"
 #include "JsonBody.h"
 #include "MultipartFormData.h"
+#include "StringBody.h"
 
 #include <unordered_set>
 
@@ -66,6 +67,11 @@ pplx::task<utility::string_t> SessionsApi::getB2bOptic(utility::string_t id)
     {
         localVarResponseHttpContentType = utility::conversions::to_string_t("application/json");
     }
+    // XML
+    else if (localVarResponseHttpContentTypes.find(utility::conversions::to_string_t("application/xml")) != localVarResponseHttpContentTypes.end())
+    {
+        localVarResponseHttpContentType = utility::conversions::to_string_t("application/xml");
+    }
     // multipart formdata
     else if( localVarResponseHttpContentTypes.find(utility::conversions::to_string_t("multipart/form-data")) != localVarResponseHttpContentTypes.end() )
     {
@@ -93,6 +99,11 @@ pplx::task<utility::string_t> SessionsApi::getB2bOptic(utility::string_t id)
     if ( localVarConsumeHttpContentTypes.size() == 0 || localVarConsumeHttpContentTypes.find(utility::conversions::to_string_t("application/json")) != localVarConsumeHttpContentTypes.end() )
     {
         localVarRequestHttpContentType = utility::conversions::to_string_t("application/json");
+    }
+    // use XML if possible
+    else if (localVarConsumeHttpContentTypes.size() == 0 && localVarResponseHttpContentType == L"application/xml" || localVarConsumeHttpContentTypes.find(utility::conversions::to_string_t("application/xml")) != localVarConsumeHttpContentTypes.end())
+    {
+        localVarRequestHttpContentType = utility::conversions::to_string_t("application/xml");
     }
     // multipart formdata
     else if( localVarConsumeHttpContentTypes.find(utility::conversions::to_string_t("multipart/form-data")) != localVarConsumeHttpContentTypes.end() )
@@ -149,6 +160,10 @@ pplx::task<utility::string_t> SessionsApi::getB2bOptic(utility::string_t id)
 
             localVarResult = ModelBase::stringFromJson(localVarJson);
             
+        }
+        else if (localVarResponseHttpContentType == utility::conversions::to_string_t("application/xml"))
+        {
+            localVarResult = localVarResponse;
         }
         else if(localVarResponseHttpContentType == utility::conversions::to_string_t("text/plain"))
         {
@@ -340,7 +355,33 @@ pplx::task<std::shared_ptr<SessionsResponse>> SessionsApi::getSessions(int32_t f
     }
     if (filter && *filter != nullptr)
     {
-        localVarQueryParams[utility::conversions::to_string_t("filter")] = ApiClient::parameterToString(*filter);
+        localVarQueryParams[utility::conversions::to_string_t("filter[externalId]")] = filter.get()->getExternalId();
+
+        switch (filter.get()->getState()->getValue())
+        {
+        case SessionState::eSessionState::SessionState_CLOSED:
+            localVarQueryParams[utility::conversions::to_string_t("filter[state]")] = utility::string_t(L"CLOSED");
+            break;
+
+        case SessionState::eSessionState::SessionState_EXPORTED:
+            localVarQueryParams[utility::conversions::to_string_t("filter[state]")] = utility::string_t(L"EXPORTED");
+            break;
+
+        case SessionState::eSessionState::SessionState_OPEN:
+            localVarQueryParams[utility::conversions::to_string_t("filter[state]")] = utility::string_t(L"OPEN");
+            break;
+
+        case SessionState::eSessionState::SessionState_SAVED:
+            localVarQueryParams[utility::conversions::to_string_t("filter[state]")] = utility::string_t(L"SAVED");
+            break;
+
+        default:
+            localVarQueryParams[utility::conversions::to_string_t("filter[state]")] = utility::string_t(L"OPEN");
+            break;
+        }
+
+        localVarQueryParams[utility::conversions::to_string_t("filter[createdAfter]")] = filter.get()->getCreatedAfter().to_string();
+        localVarQueryParams[utility::conversions::to_string_t("filter[updatedAfter]")] = filter.get()->getUpdatedAfter().to_string();
     }
     if (sort)
     {
@@ -488,6 +529,13 @@ pplx::task<std::vector<utility::string_t>> SessionsApi::importB2BOptic(utility::
 
         localVarHttpBody = std::shared_ptr<IHttpBody>( new JsonBody( localVarJson ) );
     }
+    // use XML if possible
+    else if (localVarConsumeHttpContentTypes.size() == 0 || localVarConsumeHttpContentTypes.find(utility::conversions::to_string_t("application/xml")) != localVarConsumeHttpContentTypes.end())
+    {
+        localVarRequestHttpContentType = utility::conversions::to_string_t("application/xml");
+
+        localVarHttpBody = std::shared_ptr<IHttpBody>(new StringBody(body));
+    }
     // multipart formdata
     else if( localVarConsumeHttpContentTypes.find(utility::conversions::to_string_t("multipart/form-data")) != localVarConsumeHttpContentTypes.end() )
     {
@@ -625,6 +673,13 @@ pplx::task<std::vector<utility::string_t>> SessionsApi::importB2BOpticAsNewSessi
         localVarJson = ModelBase::toJson(body);
 
         localVarHttpBody = std::shared_ptr<IHttpBody>( new JsonBody( localVarJson ) );
+    }
+    // use XML if possible
+    else if (localVarConsumeHttpContentTypes.size() == 0 || localVarConsumeHttpContentTypes.find(utility::conversions::to_string_t("application/xml")) != localVarConsumeHttpContentTypes.end())
+    {
+	    localVarRequestHttpContentType = utility::conversions::to_string_t("application/xml");
+
+        localVarHttpBody = std::shared_ptr<IHttpBody>(new StringBody(body));
     }
     // multipart formdata
     else if( localVarConsumeHttpContentTypes.find(utility::conversions::to_string_t("multipart/form-data")) != localVarConsumeHttpContentTypes.end() )
